@@ -8,10 +8,20 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="car.com.wlc.waterview.MainActivity">
+    tools:context="wlx.com.wlc.waterview.MainActivity">
+<LinearLayout
+    android:background="@color/borderColor"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <wlx.com.wlc.waterview.view.Wave
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:id="@+id/wave_view"
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
+    <wlx.com.wlc.waterview.view.WaveView
+        android:id="@+id/wave1"
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
+</LinearLayout>
+
 </RelativeLayout>

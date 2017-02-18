@@ -1,4 +1,4 @@
-package car.com.wlc.waterview.view;
+package wlx.com.wlc.waterview.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -46,8 +46,8 @@ public class WaveView extends View {
      * +------------------------+__|____
      */
     private final float DEFAULT_AMPLITUDE_RATIO = 0.05f;
-    private final float DEFAULT_WAVE_LEVEL_RATIO = 0.05f;
-    private final float DEFAULT_WAVE_LENGTH_RATIO = 0.05f;
+    private final float DEFAULT_WAVE_LEVEL_RATIO = 0.5f;
+    private final float DEFAULT_WAVE_LENGTH_RATIO = 1.0f;
     private final float DEFAULT_WAVE_SHIFT_RATIO = 0.0f;
 
     public static final int DEFAULT_BEHIND_WAVE_COLOR = Color.parseColor("#28FFFFFF");
@@ -67,14 +67,14 @@ public class WaveView extends View {
     private int mTextsize = 41;
     private int mBoderColor = Color.parseColor("#28FFFFFF");
     private int mBorderWidth = 6;
-    private float waveHeigth;
+    private float waveHeigth=0.8f;
 
     private int width;
     private int heigth;
     private double mDefaultAngularFrequency;
     private float mDefaultAmplitude;
     private float mDefaultWaterLevel;
-    private int mDefaultWaveLength;
+    private float mDefaultWaveLength;
     private String contentText = "hello";
     private AnimatorSet mAnimatorSet;
 
@@ -156,8 +156,9 @@ public class WaveView extends View {
         return mWaveLevelRadio;
     }
 
-    public void setmWaveLevelRadio(float mWaveLevelRadio) {
-        this.mWaveLevelRadio = mWaveLevelRadio;
+    public void setmWaveLevelRadio(float waveLevelRadio) {
+        if (mWaveLevelRadio != waveLevelRadio)
+        this.mWaveLevelRadio = waveLevelRadio;
         invalidate();
     }
 
@@ -165,9 +166,9 @@ public class WaveView extends View {
         return mWaveShiftRatio;
     }
 
-    public void setmWaveShiftRatio(float mWaveShiftRatio) {
-
-        this.mWaveShiftRatio = mWaveShiftRatio;
+    public void setmWaveShiftRatio(float waveShiftRatio) {
+if (mWaveShiftRatio != waveShiftRatio)
+        this.mWaveShiftRatio = waveShiftRatio;
         invalidate();
     }
 
@@ -210,6 +211,7 @@ public class WaveView extends View {
     public void setWaveColor(int behindWaveColor, int frontWaveColor) {
         mBehindWaveColor = behindWaveColor;
         mFrontWaveColor = frontWaveColor;
+
         mWaveShader = null;
         createShader();
         invalidate();
@@ -254,15 +256,15 @@ public class WaveView extends View {
         wavePaint.setColor(mBehindWaveColor);
         for (int beginX = 0; beginX < endX; beginX++) {
             double wx = beginX * mDefaultAngularFrequency;
-            float beginY = (float) mDefaultWaterLevel + mDefaultAmplitude;
+            float beginY = (float) (mDefaultWaterLevel + mDefaultAmplitude*Math.sin(wx));
             canvas.drawLine(beginX, beginY, beginX, endY, wavePaint);
             waveY[beginX] = beginY;
         }
         //画 后一个水波
         wavePaint.setColor(mFrontWaveColor);
-        final int wave2Shift = (int) mDefaultWaveLength / 4;
+        final int wave2Shift = (int) (mDefaultWaveLength / 4);
         for (int beginX = 0; beginX < endX; beginX++) {
-            canvas.drawLine(beginX, waveY[beginX + wave2Shift] % endX, beginX, endY, wavePaint);
+            canvas.drawLine(beginX, waveY[(beginX + wave2Shift)% endX] , beginX, endY, wavePaint);
         }
         mWaveShader = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.CLAMP);
         mViewPaint.setShader(mWaveShader);
@@ -285,11 +287,12 @@ public class WaveView extends View {
                     , mDefaultWaterLevel);
             // 根据 mWaveShiftRatio and mWaterLevelRatio 移动shader
             // 开始得位置是（mWaveShiftRatio for x, mWaterLevelRatio for y）
-            mShaderMatrix.postTranslate(mWaveShiftRatio * getWidth(), (DEFAULT_WAVE_LEVEL_RATIO - mWaveLengthRatio) * getHeight());
+            mShaderMatrix.postTranslate(mWaveShiftRatio * getWidth(),
+                    (DEFAULT_WAVE_LEVEL_RATIO - mWaveLengthRatio) * getHeight());
             // 再一次是=使shader 重置
             mWaveShader.setLocalMatrix(mShaderMatrix);
             //画字
-            canvas.drawText(contentText, width / 2, heigth / 2, mTextPaint);
+            canvas.drawText(contentText, width / 2f, heigth / 2f, mTextPaint);
             //画边界
             float borderWidth = mBorderPaint == null ? 0f : mBorderPaint.getStrokeWidth();
             if (borderWidth > 0) {
@@ -305,7 +308,7 @@ public class WaveView extends View {
     private void initAnimation() {
         List<Animator> animations = new ArrayList<>();
         //waveShift
-        ObjectAnimator waveShiftAnim = ObjectAnimator.ofFloat(this, "waveLevelRatio", 0f, 1f);
+        ObjectAnimator waveShiftAnim = ObjectAnimator.ofFloat(this, "waveShiftRatio", 0f, 1f);
         waveShiftAnim.setRepeatCount(ValueAnimator.INFINITE);
         waveShiftAnim.setDuration(1000);
         waveShiftAnim.setInterpolator(new LinearInterpolator());
@@ -313,18 +316,18 @@ public class WaveView extends View {
 
         //waveLevel
         ObjectAnimator waveLleveltAnim = ObjectAnimator.ofFloat(this, "waveLevelRatio", 0f, waveHeigth);
-        waveLleveltAnim.setRepeatCount(ValueAnimator.INFINITE);
         waveLleveltAnim.setDuration(5000);
         waveLleveltAnim.setInterpolator(new DecelerateInterpolator());
         animations.add(waveLleveltAnim);
 
         //amplitude
-        ObjectAnimator amplitudeAnim = ObjectAnimator.ofFloat(this, "waveLevelRatio", 0.0001f, 0.05f);
+        ObjectAnimator amplitudeAnim = ObjectAnimator.ofFloat(this, "amplitudeRatio", 0.001f, 0.05f);
         amplitudeAnim.setRepeatCount(ValueAnimator.INFINITE);
         amplitudeAnim.setRepeatMode(ValueAnimator.REVERSE);
         amplitudeAnim.setDuration(5000);
         amplitudeAnim.setInterpolator(new LinearInterpolator());
         animations.add(amplitudeAnim);
+
         mAnimatorSet = new AnimatorSet();
         mAnimatorSet.playTogether(animations);
 
@@ -332,6 +335,7 @@ public class WaveView extends View {
 
     public void start() {
         this.setmShowWave(true);
+        initAnimation();
         if (mAnimatorSet == null) {
             mAnimatorSet.start();
         }
